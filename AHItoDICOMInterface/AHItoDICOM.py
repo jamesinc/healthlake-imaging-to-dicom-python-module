@@ -73,20 +73,19 @@ class AHItoDICOM:
     def get_image_frames(self, datastore_id, imageset_id, ahi_metadata, series_uid) -> collections.deque:
         instances = []
 
-        for instance in ahi_metadata["Study"]["Series"][series_uid]["Instances"]:
-            if len(instance["ImageFrames"]) < 1:
-                self.logger.info(
-                    "Skipping the following instance because it do not contain ImageFrames: " + instance)
+        for instance_id, data in ahi_metadata["Study"]["Series"][series_uid]["Instances"].items():
+            if len(data["ImageFrames"]) < 1:
+                self.logger.info(f"Skipping instance because it do not contain ImageFrames: {instance_id}")
                 continue
             try:
-                frame_ids = [f["ID"] for f in instance["ImageFrames"]]
-                instance_number = instance["DICOM"]["InstanceNumber"]
+                frame_ids = [f["ID"] for f in data["ImageFrames"]]
+                instance_number = data["DICOM"]["InstanceNumber"]
                 instances.append({
                     "datastoreId": datastore_id,
                     "imagesetId": imageset_id,
                     "frameIds": frame_ids,
                     "SeriesUID": series_uid,
-                    "SOPInstanceUID": instance,
+                    "SOPInstanceUID": instance_id,
                     "InstanceNumber": instance_number,
                     "PixelData": None
                 })
@@ -105,17 +104,17 @@ class AHItoDICOM:
             SeriesNumber = ahi_metadata["Study"]["Series"][series]["DICOM"]["SeriesNumber"]
             Modality = ahi_metadata["Study"]["Series"][series]["DICOM"]["Modality"]
             try:  # This is a non-mandatory tag
-                SeriesDescription = ahi_metadata["Study"]["Series"][series]["DICOM"]["SeriesDescription"]
+                series_description = ahi_metadata["Study"]["Series"][series]["DICOM"]["SeriesDescription"]
             except:
-                SeriesDescription = ""
-            SeriesInstanceUID = series
+                series_description = ""
+            series_instance_uid = series
             try:
                 instanceCount = len(
                     ahi_metadata["Study"]["Series"][series]["Instances"])
             except:
                 instanceCount = 0
             seriesList.append({"ImageSetId": image_set_id, "SeriesNumber": SeriesNumber, "Modality": Modality,
-                              "SeriesDescription": SeriesDescription, "SeriesInstanceUID": SeriesInstanceUID, "InstanceCount": instanceCount})
+                              "SeriesDescription": series_description, "SeriesInstanceUID": series_instance_uid, "InstanceCount": instanceCount})
         return seriesList
 
     def get_metadata(self, datastore_id, imageset_id, client):
