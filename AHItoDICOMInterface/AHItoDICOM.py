@@ -73,19 +73,24 @@ class AHItoDICOM:
     def get_image_frames(self, datastore_id, imageset_id, ahi_metadata, series_uid) -> collections.deque:
         instances = []
 
-        for instances in ahi_metadata["Study"]["Series"][series_uid]["Instances"]:
-            if len(ahi_metadata["Study"]["Series"][series_uid]["Instances"][instances]["ImageFrames"]) < 1:
+        for instance in ahi_metadata["Study"]["Series"][series_uid]["Instances"]:
+            if len(instance["ImageFrames"]) < 1:
                 self.logger.info(
-                    "Skipping the following instance because it do not contain ImageFrames: " + instances)
+                    "Skipping the following instance because it do not contain ImageFrames: " + instance)
                 continue
             try:
-                frameIds = []
-                for imageFrame in ahi_metadata["Study"]["Series"][series_uid]["Instances"][instances]["ImageFrames"]:
-                    frameIds.append(imageFrame["ID"])
-                InstanceNumber = ahi_metadata["Study"]["Series"][series_uid][
-                    "Instances"][instances]["DICOM"]["InstanceNumber"]
-                instances.append({"datastoreId": datastore_id, "imagesetId": imageset_id, "frameIds": frameIds,
-                                     "SeriesUID": series_uid, "SOPInstanceUID": instances,  "InstanceNumber": InstanceNumber, "PixelData": None})
+                frame_ids = [f["ID"] for f in instance["ImageFrames"]]
+                instance_number = instance["DICOM"]["InstanceNumber"]
+                instances.append({
+                    "datastoreId": datastore_id,
+                    "imagesetId": imageset_id,
+                    "frameIds": frame_ids,
+                    "SeriesUID": series_uid,
+                    "SOPInstanceUID": instance,
+                    "InstanceNumber": instance_number,
+                    "PixelData": None
+                })
+
             except Exception:
                 self.logger.exception(f"[{__name__}]")
 
@@ -93,20 +98,20 @@ class AHItoDICOM:
 
         return collections.deque(instances)
 
-    def get_series_list(self, AHI_metadata, image_set_id: str) -> list[dict]:
+    def get_series_list(self, ahi_metadata, image_set_id: str) -> list[dict]:
         # 07/25/2023 - awsjpleger :  this function is from a time when there could be multiple series withing a single ImageSetId. Still works with new AHI metadata, but should be refactored.
         seriesList = []
-        for series in AHI_metadata["Study"]["Series"]:
-            SeriesNumber = AHI_metadata["Study"]["Series"][series]["DICOM"]["SeriesNumber"]
-            Modality = AHI_metadata["Study"]["Series"][series]["DICOM"]["Modality"]
+        for series in ahi_metadata["Study"]["Series"]:
+            SeriesNumber = ahi_metadata["Study"]["Series"][series]["DICOM"]["SeriesNumber"]
+            Modality = ahi_metadata["Study"]["Series"][series]["DICOM"]["Modality"]
             try:  # This is a non-mandatory tag
-                SeriesDescription = AHI_metadata["Study"]["Series"][series]["DICOM"]["SeriesDescription"]
+                SeriesDescription = ahi_metadata["Study"]["Series"][series]["DICOM"]["SeriesDescription"]
             except:
                 SeriesDescription = ""
             SeriesInstanceUID = series
             try:
                 instanceCount = len(
-                    AHI_metadata["Study"]["Series"][series]["Instances"])
+                    ahi_metadata["Study"]["Series"][series]["Instances"])
             except:
                 instanceCount = 0
             seriesList.append({"ImageSetId": image_set_id, "SeriesNumber": SeriesNumber, "Modality": Modality,
