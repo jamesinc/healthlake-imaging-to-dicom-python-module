@@ -70,25 +70,28 @@ class AHItoDICOM:
 
         return dicoms
 
-    def get_image_frames(self, datastoreId, imagesetId, AHI_metadata, seriesUid) -> collections.deque:
-        instancesList = []
-        for instances in AHI_metadata["Study"]["Series"][seriesUid]["Instances"]:
-            if len(AHI_metadata["Study"]["Series"][seriesUid]["Instances"][instances]["ImageFrames"]) < 1:
+    def get_image_frames(self, datastore_id, imageset_id, ahi_metadata, series_uid) -> collections.deque:
+        instances = []
+
+        for instances in ahi_metadata["Study"]["Series"][series_uid]["Instances"]:
+            if len(ahi_metadata["Study"]["Series"][series_uid]["Instances"][instances]["ImageFrames"]) < 1:
                 self.logger.info(
                     "Skipping the following instance because it do not contain ImageFrames: " + instances)
                 continue
             try:
                 frameIds = []
-                for imageFrame in AHI_metadata["Study"]["Series"][seriesUid]["Instances"][instances]["ImageFrames"]:
+                for imageFrame in ahi_metadata["Study"]["Series"][series_uid]["Instances"][instances]["ImageFrames"]:
                     frameIds.append(imageFrame["ID"])
-                InstanceNumber = AHI_metadata["Study"]["Series"][seriesUid][
+                InstanceNumber = ahi_metadata["Study"]["Series"][series_uid][
                     "Instances"][instances]["DICOM"]["InstanceNumber"]
-                instancesList.append({"datastoreId": datastoreId, "imagesetId": imagesetId, "frameIds": frameIds,
-                                     "SeriesUID": seriesUid, "SOPInstanceUID": instances,  "InstanceNumber": InstanceNumber, "PixelData": None})
-            except Exception as AHIErr:
-                self.logger.error(f"[{__name__}] - {AHIErr}")
-        instancesList.sort(key=self.getInstanceNumber)
-        return collections.deque(instancesList)
+                instances.append({"datastoreId": datastore_id, "imagesetId": imageset_id, "frameIds": frameIds,
+                                     "SeriesUID": series_uid, "SOPInstanceUID": instances,  "InstanceNumber": InstanceNumber, "PixelData": None})
+            except Exception:
+                self.logger.exception(f"[{__name__}]")
+
+        instances.sort(key=lambda x: int(x["InstanceNumber"]))
+
+        return collections.deque(instances)
 
     def get_series_list(self, AHI_metadata, image_set_id: str) -> list[dict]:
         # 07/25/2023 - awsjpleger :  this function is from a time when there could be multiple series withing a single ImageSetId. Still works with new AHI metadata, but should be refactored.
