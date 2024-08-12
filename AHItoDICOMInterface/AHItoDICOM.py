@@ -63,7 +63,7 @@ class AHItoDICOM:
 
         while (len(self.image_frames) > 0):
             frames = ahi_frame_fetcher.fetch(self.image_frames.popleft())
-            dicoms.append(ahi_data_dicomizer.dicomize(frames))
+            dicoms += ahi_data_dicomizer.dicomize(frames)
 
         # Sort dicoms by instance number
         dicoms.sort(key=lambda x: int(x["InstanceNumber"].value))

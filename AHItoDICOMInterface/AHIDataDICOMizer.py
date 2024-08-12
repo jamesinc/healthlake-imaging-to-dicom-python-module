@@ -105,5 +105,5 @@ class AHIDataDICOMizer():
                         continue
 
             except Exception:
-                self.logger.warning("get_tags error")
+                self.logger.exception("get_tags error")
                 continue
