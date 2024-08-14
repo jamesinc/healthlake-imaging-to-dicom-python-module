@@ -20,7 +20,7 @@ class AHIDataDICOMizer():
         self.ahi_metadata = ahi_metadata
 
     def dicomize(self, frames) -> list[FileDataset]:
-        self.logger.info(f"DICOMizing {len(frames)} framesets")
+        # self.logger.info(f"DICOMizing {len(frames)} framesets")
         dicoms = []
 
         try:
@@ -105,5 +105,5 @@ class AHIDataDICOMizer():
                         continue
 
             except Exception as ex:
-                self.logger.warning(f"get_tags failed with {ex}: {key = }")
+                # self.logger.warning(f"get_tags failed with {ex}: {key = }")
                 continue
