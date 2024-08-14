@@ -105,5 +105,5 @@ class AHIDataDICOMizer():
                         continue
 
             except Exception as ex:
-                self.logger.warning(f"get_tags failed with {ex}: {tag_level = } {key = } {tagvr = }")
+                self.logger.warning(f"get_tags failed with {ex}: {key = }")
                 continue
