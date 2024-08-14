@@ -17,21 +17,19 @@ class AHIFrameFetcher:
     def fetch(self, frame):
 
         pixel_data = b""
-        has_data = False
 
         for frame_id in frame["frameIds"]:
             self.logger.info(f"Fetching {frame_id}")
 
             try:
-                frame["PixelData"] += self.get_frame_pixels(
+                pixel_data += self.get_frame_pixels(
                     frame["datastoreId"], frame["imagesetId"], frame_id)
-                has_data = True
             except TypeError:
                 self.logger.warning(
                     f"No pixel data for {frame['datastoreId'] = }, {frame['imagesetId'] = } {frame_id = }")
                 continue
 
-        if has_data:
+        if pixel_data:
             frame["PixelData"] = pixel_data
 
         return frame
