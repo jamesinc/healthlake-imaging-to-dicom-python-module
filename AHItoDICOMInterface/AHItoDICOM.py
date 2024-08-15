@@ -163,7 +163,7 @@ class AHItoDICOM:
             return False
         return True
 
-    def save_as_dicom(self, ds: pydicom.Dataset, destination: str = './out') -> bool:
+    def save_as_dicom(self, ds: pydicom.Dataset, destination: str) -> str:
         """
         saveAsDICOM(ds : pydicom.Dataset , destination : str).
         Saves a DICOM Part10 file for the DICOM object to the specified destination.
@@ -171,12 +171,14 @@ class AHItoDICOM:
         :param ds: The pydicom Dataset representing the DICOM object.
         :param destination: the folder path where to save the DICOM file to. The file name will be the SOPInstanceUID of the DICOM object suffixed by '.dcm'.
         """
+
+        filename = f"{os.path.join(destination, ds['SOPInstanceUID'].value)}.dcm"
+
         try:
             os.makedirs(destination, exist_ok=True)
-            filename = os.path.join(destination, ds["SOPInstanceUID"].value)
-            ds.save_as(f"{filename}.dcm", write_like_original=False)
-        except Exception as err:
-            self.logger.error(f"[{__name__}][saveAsDICOM] - {err}")
-            return False
+            ds.save_as(filename, write_like_original=False)
 
-        return True
+        except Exception as err:
+            self.logger.exception(f"[{__name__}][saveAsDICOM] - {err}")
+
+        return filename
